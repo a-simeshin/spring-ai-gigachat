@@ -15,6 +15,7 @@ import chat.giga.springai.api.chat.completion.CompletionResponse;
 import chat.giga.springai.api.chat.param.FunctionCallParam;
 import chat.giga.springai.tool.GigaTools;
 import chat.giga.springai.tool.annotation.GigaTool;
+import io.qameta.allure.Description;
 import java.util.*;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -347,7 +348,11 @@ public class GigaChatModelTest {
     // ======================== Builder and Constructor Tests ========================
 
     @Test
-    @DisplayName("Тест создания модели через builder со всеми параметрами")
+    @DisplayName("GigaChatModel builder creates model with all parameters")
+    @Description("Verify that GigaChatModel can be successfully created using builder pattern with all required parameters. " +
+            "Steps: 1. Create mock GigaChatApi, GigaChatInternalProperties, and GigaChatOptions " +
+            "2. Build GigaChatModel using builder with all parameters " +
+            "3. Verify model is not null and default options are correctly set")
     void testBuilder_withAllParameters() {
         GigaChatApi api = mock(GigaChatApi.class);
         GigaChatInternalProperties props = mock(GigaChatInternalProperties.class);
@@ -364,7 +369,10 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет, что конструктор выбрасывает исключение при null GigaChatApi")
+    @DisplayName("Builder throws exception when GigaChatApi is null")
+    @Description("Verify that GigaChatModel builder validates GigaChatApi parameter. " +
+            "Steps: 1. Attempt to build GigaChatModel with null GigaChatApi " +
+            "2. Verify IllegalArgumentException is thrown")
     void testBuilder_withNullGigaChatApi_shouldThrowException() {
         assertThrows(IllegalArgumentException.class, () -> {
             GigaChatModel.builder()
@@ -375,7 +383,10 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет, что конструктор выбрасывает исключение при null defaultOptions")
+    @DisplayName("Builder throws exception when defaultOptions is null")
+    @Description("Verify that GigaChatModel builder validates defaultOptions parameter. " +
+            "Steps: 1. Attempt to build GigaChatModel with null defaultOptions " +
+            "2. Verify IllegalArgumentException is thrown")
     void testBuilder_withNullDefaultOptions_shouldThrowException() {
         assertThrows(IllegalArgumentException.class, () -> {
             GigaChatModel.builder()
@@ -387,7 +398,10 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет, что конструктор выбрасывает исключение при null internalProperties")
+    @DisplayName("Builder throws exception when internalProperties is null")
+    @Description("Verify that GigaChatModel builder validates internalProperties parameter. " +
+            "Steps: 1. Attempt to build GigaChatModel with null internalProperties " +
+            "2. Verify IllegalArgumentException is thrown")
     void testBuilder_withNullInternalProperties_shouldThrowException() {
         assertThrows(IllegalArgumentException.class, () -> {
             GigaChatModel.builder()
@@ -400,7 +414,11 @@ public class GigaChatModelTest {
     // ======================== Models Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет получение списка доступных моделей")
+    @DisplayName("Models method returns list of available models")
+    @Description("Verify that models() method returns a list of available GigaChat models. " +
+            "Steps: 1. Mock GigaChatApi to return ModelsResponse with two models " +
+            "2. Call gigaChatModel.models() " +
+            "3. Verify response contains 2 models with correct names")
     void testModels_shouldReturnListOfModels() {
         var modelDescription1 = new chat.giga.springai.api.chat.models.ModelDescription(
                 "model1", "object", null, null, null);
@@ -423,7 +441,12 @@ public class GigaChatModelTest {
     // ======================== Error Handling Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет обработку null response от API")
+    @DisplayName("Call handles null API response gracefully")
+    @Description("Verify that call() method handles null response from API correctly. " +
+            "Steps: 1. Create prompt with user message " +
+            "2. Mock API to return null response " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify ChatResponse is not null and has empty results list")
     void testCall_withNullResponse_shouldReturnEmptyList() {
         var prompt = new Prompt(List.of(new UserMessage("Hello")));
 
@@ -437,7 +460,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет обработку пустого списка choices")
+    @DisplayName("Call handles empty choices list gracefully")
+    @Description("Verify that call() method handles empty choices list in API response. " +
+            "Steps: 1. Create prompt with user message " +
+            "2. Mock API to return CompletionResponse with empty choices " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify ChatResponse has empty results list")
     void testCall_withEmptyChoices_shouldHandleGracefully() {
         var prompt = new Prompt(List.of(new UserMessage("Hello")));
         var emptyResponse = new CompletionResponse()
@@ -455,7 +483,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет обработку ошибок в stream")
+    @DisplayName("Stream propagates API errors")
+    @Description("Verify that stream() method properly propagates errors from API. " +
+            "Steps: 1. Create prompt with user message " +
+            "2. Mock API to return Flux with error " +
+            "3. Call gigaChatModel.stream() " +
+            "4. Verify error is propagated with correct message")
     void testStream_withError_shouldPropagateError() {
         var prompt = new Prompt(List.of(new UserMessage("Hello")));
         var error = new RuntimeException("API Error");
@@ -473,7 +506,13 @@ public class GigaChatModelTest {
     // ======================== Media Upload Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет загрузку нового медиа файла")
+    @DisplayName("New media file is uploaded and ID is set")
+    @Description("Verify that new media without ID is uploaded to GigaChat and ID is assigned. " +
+            "Steps: 1. Create media without ID " +
+            "2. Create prompt with UserMessage containing media " +
+            "3. Mock uploadFile to return upload response with ID " +
+            "4. Call gigaChatModel.call() " +
+            "5. Verify uploadFile was called and media ID is in request attachments")
     void testUploadMedia_withNewMedia_shouldUploadAndSetId() {
         var mediaId = UUID.randomUUID();
         var media = Media.builder()
@@ -502,7 +541,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет, что медиа с существующим ID не загружается повторно")
+    @DisplayName("Media with existing ID is not uploaded again")
+    @Description("Verify that media with existing ID is not uploaded to GigaChat again. " +
+            "Steps: 1. Create media with existing ID " +
+            "2. Create prompt with UserMessage containing media " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify uploadFile was never called")
     void testUploadMedia_withExistingId_shouldNotUploadAgain() {
         var existingMediaId = UUID.randomUUID().toString();
         var media = Media.builder()
@@ -523,7 +567,13 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет загрузку нескольких медиа файлов")
+    @DisplayName("Multiple media files are uploaded")
+    @Description("Verify that multiple media files without IDs are uploaded to GigaChat. " +
+            "Steps: 1. Create two media objects without IDs " +
+            "2. Create prompt with UserMessage containing both media " +
+            "3. Mock uploadFile for each media " +
+            "4. Call gigaChatModel.call() " +
+            "5. Verify uploadFile was called for both media")
     void testUploadMedia_withMultipleMedia_shouldUploadAll() {
         var mediaId1 = UUID.randomUUID();
         var mediaId2 = UUID.randomUUID();
@@ -562,7 +612,12 @@ public class GigaChatModelTest {
     // ======================== Usage/Tokens Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет расчет usage для одиночного вызова")
+    @DisplayName("Usage is calculated correctly for single call")
+    @Description("Verify that token usage is correctly calculated for a single chat completion call. " +
+            "Steps: 1. Create prompt with user message " +
+            "2. Mock API to return response with usage data (10 prompt, 20 completion, 30 total tokens) " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify usage metadata has correct token counts")
     void testUsageCalculation_withSingleCall() {
         var prompt = new Prompt(List.of(new UserMessage("Hello")));
         var usage = new CompletionResponse.Usage(10, 20, 30);
@@ -588,7 +643,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет обработку null usage")
+    @DisplayName("Null usage is handled gracefully")
+    @Description("Verify that null usage in API response is handled without errors. " +
+            "Steps: 1. Create prompt with user message " +
+            "2. Mock API to return response with null usage " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify usage metadata is not null")
     void testUsageCalculation_withNullUsage() {
         var prompt = new Prompt(List.of(new UserMessage("Hello")));
         var completionResponse = new CompletionResponse()
@@ -612,7 +672,11 @@ public class GigaChatModelTest {
     // ======================== Message Conversion Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет конвертацию UserMessage")
+    @DisplayName("UserMessage is converted correctly")
+    @Description("Verify that UserMessage is correctly converted to CompletionRequest.Message with user role. " +
+            "Steps: 1. Create prompt with UserMessage " +
+            "2. Call gigaChatModel.call() " +
+            "3. Verify CompletionRequest has message with user role and correct content")
     void testMessageConversion_userMessage() {
         var prompt = new Prompt(List.of(new UserMessage("Test message")));
 
@@ -630,7 +694,11 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет конвертацию SystemMessage")
+    @DisplayName("SystemMessage is converted correctly")
+    @Description("Verify that SystemMessage is correctly converted to CompletionRequest.Message with system role. " +
+            "Steps: 1. Create prompt with SystemMessage " +
+            "2. Call gigaChatModel.call() " +
+            "3. Verify CompletionRequest has message with system role and correct content")
     void testMessageConversion_systemMessage() {
         var prompt = new Prompt(List.of(new SystemMessage("System prompt")));
 
@@ -648,7 +716,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет конвертацию AssistantMessage с tool calls")
+    @DisplayName("AssistantMessage with tool calls is converted correctly")
+    @Description("Verify that AssistantMessage with tool calls is correctly converted with function call information. " +
+            "Steps: 1. Create AssistantMessage with ToolCall " +
+            "2. Create prompt with UserMessage and AssistantMessage " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify CompletionRequest has assistant message with function call details")
     void testMessageConversion_assistantMessageWithToolCalls() {
         var toolCall = new AssistantMessage.ToolCall(
                 "funcId123", "function", "testFunc", "{\"arg\":\"value\"}");
@@ -676,7 +749,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет конвертацию ToolResponseMessage")
+    @DisplayName("ToolResponseMessage is converted correctly")
+    @Description("Verify that ToolResponseMessage is correctly converted to CompletionRequest.Message with function role. " +
+            "Steps: 1. Create ToolResponseMessage with tool response " +
+            "2. Create prompt with UserMessage, AssistantMessage, and ToolResponseMessage " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify CompletionRequest has function message with result and name")
     void testMessageConversion_toolResponseMessage() {
         var toolResponse = new ToolResponseMessage.ToolResponse("toolId", "toolName", "result");
         var toolResponseMessage = new ToolResponseMessage(List.of(toolResponse));
@@ -708,7 +786,12 @@ public class GigaChatModelTest {
     // ======================== System Prompt Sorting Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет, что системный промпт на первом месте не перемещается")
+    @DisplayName("System prompt already first is not reordered")
+    @Description("Verify that when system prompt is already first, it stays in place. " +
+            "Steps: 1. Enable system prompt sorting " +
+            "2. Create prompt with system message first, then user and assistant " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify first message in request has system role")
     void testSystemPromptSorting_whenSystemPromptFirst_shouldNotReorder() {
         when(gigaChatInternalProperties.isMakeSystemPromptFirstMessageInMemory()).thenReturn(true);
 
@@ -727,7 +810,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет перемещение системного промпта на первое место")
+    @DisplayName("System prompt not first is moved to first position")
+    @Description("Verify that system prompt is moved to first position when not already first. " +
+            "Steps: 1. Enable system prompt sorting " +
+            "2. Create prompt with user message first, then system and assistant " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify first message in request has system role with correct content")
     void testSystemPromptSorting_whenSystemPromptNotFirst_shouldMoveToFirst() {
         when(gigaChatInternalProperties.isMakeSystemPromptFirstMessageInMemory()).thenReturn(true);
 
@@ -747,7 +835,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет работу без системного промпта")
+    @DisplayName("Prompt without system message works correctly")
+    @Description("Verify that prompt without system message is processed without errors. " +
+            "Steps: 1. Enable system prompt sorting " +
+            "2. Create prompt with only user and assistant messages " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify request has 2 messages without errors")
     void testSystemPromptSorting_whenNoSystemPrompt_shouldNotFail() {
         when(gigaChatInternalProperties.isMakeSystemPromptFirstMessageInMemory()).thenReturn(true);
 
@@ -765,7 +858,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет, что сортировка не выполняется когда отключена")
+    @DisplayName("System prompt sorting disabled preserves original order")
+    @Description("Verify that when sorting is disabled, message order is preserved. " +
+            "Steps: 1. Disable system prompt sorting " +
+            "2. Create prompt with user message first, then system " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify first message in request has user role (original order)")
     void testSystemPromptSorting_whenDisabled_shouldNotSort() {
         when(gigaChatInternalProperties.isMakeSystemPromptFirstMessageInMemory()).thenReturn(false);
 
@@ -785,7 +883,12 @@ public class GigaChatModelTest {
     // ======================== Streaming Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет потоковую передачу с несколькими чанками")
+    @DisplayName("Stream with multiple chunks processes correctly")
+    @Description("Verify that streaming mode correctly processes multiple response chunks. " +
+            "Steps: 1. Create prompt with user message " +
+            "2. Mock API to return Flux with 3 chunks (content1, content2, finish) " +
+            "3. Call gigaChatModel.stream() " +
+            "4. Verify all chunks are received and finish reason is 'stop'")
     void testStream_withMultipleChunks() {
         var prompt = new Prompt(List.of(new UserMessage("Hello")));
 
@@ -835,7 +938,12 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет обработку пустого контента в stream")
+    @DisplayName("Stream with empty content handles correctly")
+    @Description("Verify that streaming mode handles empty content in response correctly. " +
+            "Steps: 1. Create prompt with user message " +
+            "2. Mock API to return Flux with chunk containing empty content and STOP finish reason " +
+            "3. Call gigaChatModel.stream() " +
+            "4. Verify response contains empty text")
     void testStream_withEmptyContent() {
         var prompt = new Prompt(List.of(new UserMessage("Hello")));
 
@@ -863,7 +971,12 @@ public class GigaChatModelTest {
     // ======================== Options Merging Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет слияние runtime и default опций")
+    @DisplayName("Runtime options override default options correctly")
+    @Description("Verify that runtime options correctly override default options. " +
+            "Steps: 1. Create GigaChatModel with default temperature 0.5 " +
+            "2. Create prompt with runtime options temperature 0.8 " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify CompletionRequest has temperature 0.8")
     void testBuildRequestPrompt_mergeRuntimeAndDefaultOptions() {
         var defaultOptions = GigaChatOptions.builder()
                 .model(GigaChatApi.ChatModel.GIGA_CHAT.getName())
@@ -888,12 +1001,16 @@ public class GigaChatModelTest {
         ArgumentCaptor<CompletionRequest> requestCaptor = ArgumentCaptor.forClass(CompletionRequest.class);
         verify(gigaChatApi).chatCompletionEntity(requestCaptor.capture(), any());
 
-        // Runtime options должны перезаписывать default options
         assertEquals(0.8, requestCaptor.getValue().getTemperature());
     }
 
     @Test
-    @DisplayName("Тест проверяет использование default опций при отсутствии runtime опций")
+    @DisplayName("Default options are used when runtime options are null")
+    @Description("Verify that default options are used when no runtime options are provided. " +
+            "Steps: 1. Create GigaChatModel with default temperature 0.7 " +
+            "2. Create prompt without runtime options " +
+            "3. Call gigaChatModel.call() " +
+            "4. Verify CompletionRequest has temperature 0.7 from defaults")
     void testBuildRequestPrompt_withNullRuntimeOptions() {
         var defaultOptions = GigaChatOptions.builder()
                 .model(GigaChatApi.ChatModel.GIGA_CHAT.getName())
@@ -922,7 +1039,11 @@ public class GigaChatModelTest {
     // ======================== Edge Cases Tests ========================
 
     @Test
-    @DisplayName("Тест проверяет работу с пустым промптом")
+    @DisplayName("Empty prompt is handled correctly")
+    @Description("Verify that empty prompt (no messages) is handled without errors. " +
+            "Steps: 1. Create prompt with empty message list " +
+            "2. Call gigaChatModel.call() " +
+            "3. Verify CompletionRequest has no messages")
     void testCall_withEmptyPrompt() {
         var prompt = new Prompt(List.of());
 
@@ -938,7 +1059,10 @@ public class GigaChatModelTest {
     }
 
     @Test
-    @DisplayName("Тест проверяет, что getDefaultOptions возвращает копию")
+    @DisplayName("getDefaultOptions returns a copy")
+    @Description("Verify that getDefaultOptions() returns a new copy each time, not the same instance. " +
+            "Steps: 1. Call gigaChatModel.getDefaultOptions() twice " +
+            "2. Verify returned objects are not the same instance")
     void testGetDefaultOptions_shouldReturnCopy() {
         var options1 = gigaChatModel.getDefaultOptions();
         var options2 = gigaChatModel.getDefaultOptions();
@@ -948,7 +1072,11 @@ public class GigaChatModelTest {
 
     @ParameterizedTest
     @MethodSource("promptAndMetadataProvider")
-    @DisplayName("Тест проверяет наполнение ChatResponse кастомными метаданными")
+    @DisplayName("ChatResponse is populated with custom metadata")
+    @Description("Verify that ChatResponse contains correct custom metadata including internal conversation history and uploaded media IDs. " +
+            "Steps: 1. Create prompt with various message combinations " +
+            "2. Call gigaChatModel.call() " +
+            "3. Verify ChatResponse metadata contains expected keys and values")
     void testCustomMetadata(Prompt prompt, Map<String, Object> expectedMetadata) {
         when(gigaChatApi.chatCompletionEntity(any(), any()))
                 .thenReturn(new ResponseEntity<>(response, HttpStatusCode.valueOf(200)));
